@@ -29,111 +29,141 @@ function myFunction2() {
   element.classList.toggle("light-mode");
 }
 
-// Grab the single audio element by ID
+// === AUDIO + PLAYLIST SETUP ===
 const audio = document.getElementById('myAudio');
 
-// Player controls
 const playBtn = document.getElementById('playBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const rewindBtn = document.getElementById('rewindBtn');
 const fastForwardBtn = document.getElementById('fastForwardBtn');
+
 const currentTimeSpan = document.getElementById('currentTime');
 const durationSpan = document.getElementById('duration');
 
-// ---- PLAYLIST SETUP ----
-// Put all your mp3 files here in the order you want them to play
+// Playlist: one entry per audio file + where to scroll
 const playlist = [
-  'gpfm1.mp3',
-  'gpfm2.mp3',
-  'gpfm3.mp3',
-  'gpfm4.mp3'
+  { src: 'gpfm1.mp3', anchorId: 'page1' },   // pp. 1–5
+  { src: 'gpfm2.mp3', anchorId: 'page6' },   // pp. 6–12
+  { src: 'gpfm3.mp3', anchorId: 'page13' },  // pp. 13–17
+  { src: 'gpfm4.mp3', anchorId: 'page18' }   // pp. 18–24
 ];
 
-let currentTrack = 0;
+let currentTrackIndex = 0;
 let isPlaying = false;
 
-// Initialize first track
-function loadTrack(index) {
-  if (index < 0 || index >= playlist.length) return;
-  currentTrack = index;
-  audio.src = playlist[currentTrack];
-  audio.load();
+// Helper: format seconds into MM:SS
+function formatTime(seconds) {
+  const s = Math.floor(seconds || 0);
+  const min = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
 }
 
-// Call once on page load
-loadTrack(0);
-
-// ---- CONTROL FUNCTIONS ----
-function playAudio() {
-  audio.play();
-  isPlaying = true;
-  playBtn.style.display = 'none';
-  pauseBtn.style.display = 'inline-block';
-}
-
-function pauseAudio() {
-  audio.pause();
-  isPlaying = false;
-  playBtn.style.display = 'inline-block';
-  pauseBtn.style.display = 'none';
-}
-
-function rewindAudio() {
-  audio.currentTime = Math.max(0, audio.currentTime - 10);
-}
-
-function fastForwardAudio() {
-  // Prevent going beyond duration
-  if (!isNaN(audio.duration)) {
-    audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
-  } else {
-    audio.currentTime += 10;
+// Scroll page to the anchor for the current track
+function scrollToCurrentSection() {
+  const track = playlist[currentTrackIndex];
+  const anchor = document.getElementById(track.anchorId);
+  if (anchor) {
+    anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 
-// ---- TIME DISPLAY ----
-function updateTime() {
-  const currentTime = Math.floor(audio.currentTime || 0);
-  const minutes = Math.floor(currentTime / 60);
-  const seconds = currentTime - minutes * 60;
-  currentTimeSpan.textContent =
-    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+// Load a given track (0–3)
+function loadTrack(index, options = {}) {
+  const { autoPlay = false, doScroll = true } = options;
+
+  if (index < 0 || index >= playlist.length) return;
+
+  currentTrackIndex = index;
+  const track = playlist[index];
+
+  audio.src = track.src;
+  audio.currentTime = 0;
+  audio.load();
+
+  if (doScroll) {
+    scrollToCurrentSection();
+  }
+
+  if (autoPlay) {
+    audio.play();
+    isPlaying = true;
+  }
+
+  updateTimeDisplays();
 }
 
-function updateDuration() {
-  if (isNaN(audio.duration)) return;
-  const duration = Math.floor(audio.duration);
-  const minutes = Math.floor(duration / 60);
-  const seconds = duration - minutes * 60;
-  durationSpan.textContent =
-    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+// Update MM:SS displays
+function updateTimeDisplays() {
+  currentTimeSpan.textContent = formatTime(audio.currentTime);
+  if (!isNaN(audio.duration)) {
+    durationSpan.textContent = formatTime(audio.duration);
+  }
 }
 
-// ---- PLAYLIST AUTO-NEXT ----
+// === EVENT HOOKS ===
+
+// Time updating
+audio.addEventListener('timeupdate', updateTimeDisplays);
+
+// Duration known
+audio.addEventListener('loadedmetadata', updateTimeDisplays);
+
+// When a track finishes: go to next audio + scroll to its section
 audio.addEventListener('ended', () => {
-  // Move to next track
-  currentTrack++;
-
-  if (currentTrack < playlist.length) {
-    loadTrack(currentTrack);
-    audio.play(); // auto-start next track
+  if (currentTrackIndex < playlist.length - 1) {
+    loadTrack(currentTrackIndex + 1, { autoPlay: true, doScroll: true });
   } else {
-    // Reached end of playlist - reset UI
     isPlaying = false;
-    playBtn.style.display = 'inline-block';
-    pauseBtn.style.display = 'none';
-    // Optionally: reset to first track
-    // loadTrack(0);
   }
 });
 
-// ---- EVENT LISTENERS ----
-playBtn.addEventListener('click', playAudio);
-pauseBtn.addEventListener('click', pauseAudio);
-rewindBtn.addEventListener('click', rewindAudio);
-fastForwardBtn.addEventListener('click', fastForwardAudio);
-audio.addEventListener('timeupdate', updateTime);
-audio.addEventListener('loadedmetadata', updateDuration);
+// === CONTROLS ===
+playBtn.addEventListener('click', () => {
+  if (!isPlaying) {
+    // If nothing loaded yet, load the current track
+    if (!audio.src) {
+      loadTrack(currentTrackIndex, { autoPlay: true, doScroll: true });
+    } else {
+      audio.play();
+      isPlaying = true;
+    }
+  }
+});
 
-// Optional: start with pause button hidden
-pauseBtn.style.display = 'none';
+pauseBtn.addEventListener('click', () => {
+  audio.pause();
+  isPlaying = false;
+});
+
+// Rewind logic:
+// - If more than 5 seconds into current track → jump to start of this track
+// - If within first 5 seconds → go to previous track and scroll to its section
+const REWIND_THRESHOLD_SECONDS = 5;
+
+rewindBtn.addEventListener('click', () => {
+  if (audio.currentTime > REWIND_THRESHOLD_SECONDS) {
+    audio.currentTime = 0; // restart same track
+  } else if (currentTrackIndex > 0) {
+    loadTrack(currentTrackIndex - 1, { autoPlay: true, doScroll: true });
+  } else {
+    audio.currentTime = 0; // already at first track
+  }
+});
+
+// Fast-forward logic:
+// - Always go to next track (if any), scroll to its section
+fastForwardBtn.addEventListener('click', () => {
+  if (currentTrackIndex < playlist.length - 1) {
+    loadTrack(currentTrackIndex + 1, { autoPlay: true, doScroll: true });
+  } else {
+    // last track → jump to near the end
+    audio.currentTime = audio.duration || 0;
+  }
+});
+
+// Initialize first track on page load (no auto-play)
+window.addEventListener('DOMContentLoaded', () => {
+  loadTrack(0, { autoPlay: false, doScroll: true });
+});
+
