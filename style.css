@@ -29,4 +29,18 @@ body {
     color: black; /* Black text color for visibility */
 }
 
+/* Overlay for text so it stays on top of video */
+.video-overlay {
+  position: relative;
+  z-index: 1;
+}
+
+/* Optional: make header text pop more over video */
+.video-header h1,
+.video-header p {
+  text-shadow: 0 0 6px rgba(0,0,0,0.8);
+}
+
+
+
 
