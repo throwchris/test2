@@ -25,8 +25,8 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
 
 <!-- Navbar -->
 <div class="w3-top">
-  <div class="w3-bar w3-card w3-left-align w3-large" style="background-image: url('water.jpg')">
-    <a class="w3-bar-item w3-button w3-right w3-padding-large w3-hover-blue w3-large" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars w3-text-red" style="background-image: url('water.jpg')"></i></a>
+  <div class="w3-bar w3-card w3-left-align w3-large w3-black">
+    <a class="w3-bar-item w3-button w3-right w3-padding-large w3-hover-blue w3-large" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars" style="background-image: url('water.jpg')"></i></a>
     
    
     
@@ -36,7 +36,6 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
     <i class="w3-btn w3-bar-item w3-margin-center w3-right w3-text-red material-icons" style="font-size:28px" onclick="myFunction2()">brightness_6</i>
     <i class="w3-btn w3-bar-item w3-margin-center w3-right w3-text-red fa fa-microphone" style="font-size:28px" id="start-btn"></i>
     <i class='w3-btn w3-bar-item w3-margin-center w3-right w3-text-yellow fas fa-sun' style='font-size:28px' id="unhighlight-btn"></i>
-    
       
        
    
@@ -71,12 +70,22 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
   
 </div>
 
-<!-- Header -->
-<header class="w3-container w3-center" style="padding:25px 16px; background-image: url('water.jpg');">
-  <h1 class="w3-margin w3-jumbo w3-text-white">Gods Plan For Man</h1>
-  <p class="w3-xlarge w3-text-white">Rev. Rose M. Aluli</p>
-  <!-- <button class="w3-button w3-black w3-padding-large w3-large w3-margin-top">Get Started</button> -->
-</header>
+
+<!-- Header with video background -->
+<header class="w3-container w3-center video-header">
+    <video class="bg-video" autoplay muted loop playsinline>
+      <!-- Put your video file in this folder and name it header-video.mp4, or change the src below -->
+      <source src="waves.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  
+    <div class="video-overlay">
+      <h1 class="w3-margin w3-jumbo w3-text-white">Gods Plan For Man</h1>
+      <p class="w3-xlarge w3-text-white">Rev. Rose M. Aluli</p>
+      
+    </div>
+  </header>
+  
 
 <!-- First Grid -->
     <div id="content">
@@ -786,7 +795,7 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
 
 </div>
 
-<div class="w3-bottom w3-center w3-margin-center" style="background-image: url('water.jpg')"">
+<div class="w3-bottom w3-center w3-margin-center w3-black">
     <div class="w3-bar w3-center w3-margin-center w3-xlarge">
       <audio src="gpfm1.mp3"></audio>
       <i class="fas fa-play fa-fw w3-text-red" id="playBtn"></i>
@@ -818,6 +827,3 @@ function myFunction() {
 
 </body>
 </html>
-
-
-
